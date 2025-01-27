@@ -18,7 +18,7 @@ class MapBuilder<K, V> {
   _BuiltMap<K, V>? _mapOwner;
 
   /// Instantiates with elements from a [Map] or [BuiltMap].
-  factory MapBuilder([map = const {}]) {
+  factory MapBuilder([Map<K, V> map = const {}]) {
     return MapBuilder<K, V>._uninitialized()..replace(map);
   }
 
