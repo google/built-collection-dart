@@ -536,6 +536,30 @@ void main() {
           isFalse);
     });
 
+    test('has a method like SetMultimap.contains', () {
+      expect(
+          BuiltSetMultimap<int, String>({
+            1: ['1'],
+            2: ['2'],
+            3: ['3']
+          }).contains(1, '1'),
+          isTrue);
+      expect(
+          BuiltSetMultimap<int, String>({
+            1: ['1'],
+            2: ['2'],
+            3: ['3']
+          }).contains(4, '1'),
+          isFalse);
+      expect(
+          BuiltSetMultimap<int, String>({
+            1: ['1'],
+            2: ['2'],
+            3: ['3']
+          }).contains(2, '3'),
+          isFalse);
+    });
+
     test('has a method like SetMultimap.forEach', () {
       var totalKeys = 0;
       var concatenatedValues = '';

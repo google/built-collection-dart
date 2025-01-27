@@ -118,6 +118,10 @@ abstract class BuiltSetMultimap<K, V> {
   /// As [SetMultimap.containsValue].
   bool containsValue(Object? value) => values.contains(value);
 
+  /// As [SetMultimap.contains].
+  bool contains(Object? key, Object? value)
+    => _map[key]?.contains(value) == true;
+
   /// As [SetMultimap.forEach].
   void forEach(void Function(K, V) f) {
     _map.forEach((key, values) {

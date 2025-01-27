@@ -118,6 +118,10 @@ abstract class BuiltListMultimap<K, V> {
   /// As [ListMultimap.containsValue].
   bool containsValue(Object? value) => values.contains(value);
 
+  /// As [ListMultimap.contains].
+  bool contains(Object? key, Object? value)
+    => _map[key]?.contains(value) == true;
+
   /// As [ListMultimap.forEach].
   void forEach(void Function(K, V) f) {
     _map.forEach((key, values) {
