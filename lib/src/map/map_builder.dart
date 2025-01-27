@@ -15,7 +15,7 @@ class MapBuilder<K, V> {
   /// Used by [_createMap] to instantiate [_map]. The default value is `null`.
   _MapFactory<K, V>? _mapFactory;
   late Map<K, V> _map;
-  _BuiltMap<K, V>? _mapOwner;
+  BuiltMap<K, V>? _mapOwner;
 
   /// Instantiates with elements from a [Map] or [BuiltMap].
   factory MapBuilder([map = const {}]) {
@@ -38,7 +38,7 @@ class MapBuilder<K, V> {
 
   /// Replaces all elements with elements from a [Map] or [BuiltMap].
   void replace(Object map) {
-    if (map is _BuiltMap<K, V> && map._mapFactory == _mapFactory) {
+    if (map is BuiltMap<K, V> && map._mapFactory == _mapFactory) {
       _setOwner(map);
     } else if (map is BuiltMap) {
       var replacement = _createMap();
@@ -167,12 +167,12 @@ class MapBuilder<K, V> {
 
   MapBuilder._uninitialized();
 
-  MapBuilder._fromBuiltMap(_BuiltMap<K, V> map)
+  MapBuilder._fromBuiltMap(BuiltMap<K, V> map)
       : _mapFactory = map._mapFactory,
         _map = map._map,
         _mapOwner = map;
 
-  void _setOwner(_BuiltMap<K, V> mapOwner) {
+  void _setOwner(BuiltMap<K, V> mapOwner) {
     assert(mapOwner._mapFactory == _mapFactory,
         "Can't reuse a built map that uses a different base");
     _mapOwner = mapOwner;

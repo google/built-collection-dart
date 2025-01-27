@@ -19,11 +19,6 @@ abstract class BuiltMap<K, V> {
   final _MapFactory<K, V>? _mapFactory;
   final Map<K, V> _map;
 
-  // Cached.
-  int? _hashCode;
-  Iterable<K>? _keys;
-  Iterable<V>? _values;
-
   /// Instantiates with elements from a [Map] or [BuiltMap].
   factory BuiltMap([map = const {}]) {
     if (map is _BuiltMap && map.hasExactKeyAndValueTypes(K, V)) {
@@ -34,6 +29,9 @@ abstract class BuiltMap<K, V> {
       throw ArgumentError('expected Map or BuiltMap, got ${map.runtimeType}');
     }
   }
+
+  const factory BuiltMap.fromMap([Map<K, V> map]) =
+      _ConstBuiltMap<K, V>.withSafeMap;
 
   /// Instantiates with elements from a [Map].
   factory BuiltMap.from(Map map) {
@@ -54,8 +52,7 @@ abstract class BuiltMap<K, V> {
   /// Converts to a [MapBuilder] for modification.
   ///
   /// The `BuiltMap` remains immutable and can continue to be used.
-  MapBuilder<K, V> toBuilder() =>
-      MapBuilder<K, V>._fromBuiltMap(this as _BuiltMap<K, V>);
+  MapBuilder<K, V> toBuilder() => MapBuilder<K, V>._fromBuiltMap(this);
 
   /// Converts to a [MapBuilder], applies updates to it, and builds.
   BuiltMap<K, V> rebuild(Function(MapBuilder<K, V>) updates) =>
@@ -82,13 +79,10 @@ abstract class BuiltMap<K, V> {
   /// A `BuiltMap` is only equal to another `BuiltMap` with equal key/value
   /// pairs in any order. Then, the `hashCode` is guaranteed to be the same.
   @override
-  int get hashCode {
-    _hashCode ??= hashObjects(_map.keys
-        .map((key) => hash2(key.hashCode, _map[key].hashCode))
-        .toList(growable: false)
-      ..sort());
-    return _hashCode!;
-  }
+  int get hashCode => hashObjects(_map.keys
+      .map((key) => hash2(key.hashCode, _map[key].hashCode))
+      .toList(growable: false)
+    ..sort());
 
   /// Deep equality.
   ///
@@ -132,20 +126,14 @@ abstract class BuiltMap<K, V> {
   bool get isNotEmpty => _map.isNotEmpty;
 
   /// As [Map.keys], but result is stable; it always returns the same instance.
-  Iterable<K> get keys {
-    _keys ??= _map.keys;
-    return _keys!;
-  }
+  Iterable<K> get keys => _map.keys;
 
   /// As [Map.length].
   int get length => _map.length;
 
   /// As [Map.values], but result is stable; it always returns the same
   /// instance.
-  Iterable<V> get values {
-    _values ??= _map.values;
-    return _values!;
-  }
+  Iterable<V> get values => _map.values;
 
   /// As [Map.entries].
   Iterable<MapEntry<K, V>> get entries => _map.entries;
@@ -156,11 +144,16 @@ abstract class BuiltMap<K, V> {
 
   // Internal.
 
-  BuiltMap._(this._mapFactory, this._map);
+  const BuiltMap._(this._mapFactory, this._map);
 }
 
 /// Default implementation of the public [BuiltMap] interface.
 class _BuiltMap<K, V> extends BuiltMap<K, V> {
+  // Cached.
+  int? _hashCode;
+  Iterable<K>? _keys;
+  Iterable<V>? _values;
+
   _BuiltMap.withSafeMap(_MapFactory<K, V>? mapFactory, Map<K, V> map)
       : super._(mapFactory, map);
 
@@ -196,7 +189,30 @@ class _BuiltMap<K, V> extends BuiltMap<K, V> {
     }
   }
 
+  @override
+  Iterable<V> get values {
+    _values ??= super.values;
+    return _values!;
+  }
+
+  @override
+  Iterable<K> get keys {
+    _keys ??= super.keys;
+    return _keys!;
+  }
+
+  @override
+  int get hashCode {
+    _hashCode ??= super.hashCode;
+    return _hashCode!;
+  }
+
   bool hasExactKeyAndValueTypes(Type key, Type value) => K == key && V == value;
+}
+
+class _ConstBuiltMap<K, V> extends BuiltMap<K, V> {
+  const _ConstBuiltMap.withSafeMap([Map<K, V> map = const {}])
+      : super._(null, map);
 }
 
 /// Extensions for [BuiltMap] on [Map].

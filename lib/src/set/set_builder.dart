@@ -15,7 +15,7 @@ class SetBuilder<E> {
   /// Used by [_createSet] to instantiate [_set]. The default value is `null`.
   _SetFactory<E>? _setFactory;
   late Set<E> _set;
-  _BuiltSet<E>? _setOwner;
+  BuiltSet<E>? _setOwner;
 
   /// Instantiates with elements from an [Iterable<E>].
   factory SetBuilder.of(Iterable<E> iterable) {
@@ -43,7 +43,7 @@ class SetBuilder<E> {
 
   /// Replaces all elements with elements from an [Iterable].
   void replace(Iterable iterable) {
-    if (iterable is _BuiltSet<E> && iterable._setFactory == _setFactory) {
+    if (iterable is BuiltSet<E> && iterable._setFactory == _setFactory) {
       _withOwner(iterable);
     } else {
       // Can't use addAll because it requires an Iterable<E>.
@@ -198,12 +198,12 @@ class SetBuilder<E> {
 
   SetBuilder._uninitialized();
 
-  SetBuilder._fromBuiltSet(_BuiltSet<E> set)
+  SetBuilder._fromBuiltSet(BuiltSet<E> set)
       : _setFactory = set._setFactory,
         _set = set._set,
         _setOwner = set;
 
-  void _withOwner(_BuiltSet<E> setOwner) {
+  void _withOwner(BuiltSet<E> setOwner) {
     assert(setOwner._setFactory == _setFactory,
         "Can't reuse a built set that uses a different base");
     _set = setOwner._set;

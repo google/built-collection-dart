@@ -17,19 +17,16 @@ part of '../list_multimap.dart';
 abstract class BuiltListMultimap<K, V> {
   final Map<K, BuiltList<V>> _map;
 
-  // Precomputed.
-  final BuiltList<V> _emptyList = BuiltList<V>();
-
-  // Cached.
-  int? _hashCode;
-  Iterable<K>? _keys;
-  Iterable<V>? _values;
+  const factory BuiltListMultimap.fromMap([Map<K, BuiltList<V>> map]) =
+      _ConstBuiltListMultimap.withSafeMap;
 
   /// Instantiates with elements from a [Map], [ListMultimap] or
   /// [BuiltListMultimap].
   factory BuiltListMultimap([multimap = const {}]) {
     if (multimap is _BuiltListMultimap &&
-        multimap.hasExactKeyAndValueTypes(K, V)) {
+            multimap.hasExactKeyAndValueTypes(K, V) ||
+        multimap is _ConstBuiltListMultimap &&
+            multimap.hasExactKeyAndValueTypes(K, V)) {
       return multimap as BuiltListMultimap<K, V>;
     } else if (multimap is Map) {
       return _BuiltListMultimap<K, V>.copy(multimap.keys, (k) => multimap[k]);
@@ -72,11 +69,12 @@ abstract class BuiltListMultimap<K, V> {
   /// to be the same.
   @override
   int get hashCode {
-    _hashCode ??= hashObjects(_map.keys
-        .map((key) => hash2(key.hashCode, _map[key].hashCode))
-        .toList(growable: false)
-      ..sort());
-    return _hashCode!;
+    return hashObjects(
+      _map.keys
+          .map((key) => hash2(key.hashCode, _map[key].hashCode))
+          .toList(growable: false)
+        ..sort(),
+    );
   }
 
   /// Deep equality.
@@ -109,7 +107,7 @@ abstract class BuiltListMultimap<K, V> {
   /// As [ListMultimap], but results are [BuiltList]s and not mutable.
   BuiltList<V> operator [](Object? key) {
     var result = _map[key];
-    return result ?? _emptyList;
+    return result ?? BuiltList<V>();
   }
 
   /// As [ListMultimap.containsKey].
@@ -142,24 +140,18 @@ abstract class BuiltListMultimap<K, V> {
 
   /// As [ListMultimap.keys], but result is stable; it always returns the same
   /// instance.
-  Iterable<K> get keys {
-    _keys ??= _map.keys;
-    return _keys!;
-  }
+  Iterable<K> get keys => _map.keys;
 
   /// As [ListMultimap.length].
   int get length => _map.length;
 
   /// As [ListMultimap.values], but result is stable; it always returns the
   /// same instance.
-  Iterable<V> get values {
-    _values ??= _map.values.expand((x) => x);
-    return _values!;
-  }
+  Iterable<V> get values => _map.values.expand((x) => x);
 
   // Internal.
 
-  BuiltListMultimap._(this._map);
+  const BuiltListMultimap._(this._map);
 }
 
 /// Default implementation of the public [BuiltListMultimap] interface.
@@ -177,5 +169,46 @@ class _BuiltListMultimap<K, V> extends BuiltListMultimap<K, V> {
     }
   }
 
+  // Precomputed.
+  final BuiltList<V> _emptyList = BuiltList<V>();
+
+  /// As [ListMultimap], but results are [BuiltList]s and not mutable.
+  @override
+  BuiltList<V> operator [](Object? key) {
+    var result = _map[key];
+    // Precomputed.
+    return result ?? _emptyList;
+  }
+
+  // Cached.
+  int? _hashCode;
+  Iterable<K>? _keys;
+  Iterable<V>? _values;
+
+  @override
+  Iterable<V> get values {
+    _values ??= super.values;
+    return _values!;
+  }
+
+  @override
+  Iterable<K> get keys {
+    _keys ??= super.keys;
+    return _keys!;
+  }
+
+  @override
+  int get hashCode {
+    _hashCode ??= super.hashCode;
+    return _hashCode!;
+  }
+
+  bool hasExactKeyAndValueTypes(Type key, Type value) => K == key && V == value;
+}
+
+class _ConstBuiltListMultimap<K, V> extends BuiltListMultimap<K, V> {
+  const _ConstBuiltListMultimap.withSafeMap(
+      [Map<K, BuiltList<V>> src = const {}])
+      : super._(src);
   bool hasExactKeyAndValueTypes(Type key, Type value) => K == key && V == value;
 }

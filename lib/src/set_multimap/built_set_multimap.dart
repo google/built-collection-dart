@@ -16,19 +16,13 @@ part of '../set_multimap.dart';
 abstract class BuiltSetMultimap<K, V> {
   final Map<K, BuiltSet<V>> _map;
 
-  // Precomputed.
-  final BuiltSet<V> _emptySet = BuiltSet<V>();
-
-  // Cached.
-  int? _hashCode;
-  Iterable<K>? _keys;
-  Iterable<V>? _values;
-
   /// Instantiates with elements from a [Map], [SetMultimap] or
   /// [BuiltSetMultimap].
   factory BuiltSetMultimap([multimap = const {}]) {
-    if (multimap is _BuiltSetMultimap &&
-        multimap.hasExactKeyAndValueTypes(K, V)) {
+    if ((multimap is _BuiltSetMultimap &&
+            multimap.hasExactKeyAndValueTypes(K, V)) ||
+        (multimap is _ConstBuiltSetMultimap &&
+            multimap.hasExactKeyAndValueTypes(K, V))) {
       return multimap as BuiltSetMultimap<K, V>;
     } else if (multimap is Map) {
       return _BuiltSetMultimap<K, V>.copyAndCheck(
@@ -41,6 +35,9 @@ abstract class BuiltSetMultimap<K, V> {
           multimap.keys, (k) => multimap[k]);
     }
   }
+
+  const factory BuiltSetMultimap.fromMap([Map<K, BuiltSet<V>> map]) =
+      _ConstBuiltSetMultimap.withSafeSet;
 
   /// Creates a [SetMultimapBuilder], applies updates to it, and builds.
   factory BuiltSetMultimap.build(Function(SetMultimapBuilder<K, V>) updates) =>
@@ -72,11 +69,10 @@ abstract class BuiltSetMultimap<K, V> {
   /// to be the same.
   @override
   int get hashCode {
-    _hashCode ??= hashObjects(_map.keys
+    return hashObjects(_map.keys
         .map((key) => hash2(key.hashCode, _map[key].hashCode))
         .toList(growable: false)
       ..sort());
-    return _hashCode!;
   }
 
   /// Deep equality.
@@ -109,7 +105,7 @@ abstract class BuiltSetMultimap<K, V> {
   /// As [SetMultimap], but results are [BuiltSet]s and not mutable.
   BuiltSet<V>? operator [](Object? key) {
     var result = _map[key];
-    return identical(result, null) ? _emptySet : result;
+    return identical(result, null) ? BuiltSet<V>() : result;
   }
 
   /// As [SetMultimap.containsKey].
@@ -142,28 +138,55 @@ abstract class BuiltSetMultimap<K, V> {
 
   /// As [SetMultimap.keys], but result is stable; it always returns the same
   /// instance.
-  Iterable<K> get keys {
-    _keys ??= _map.keys;
-    return _keys!;
-  }
+  Iterable<K> get keys => _map.keys;
 
   /// As [SetMultimap.length].
   int get length => _map.length;
 
   /// As [SetMultimap.values], but result is stable; it always returns the
   /// same instance.
-  Iterable<V> get values {
-    _values ??= _map.values.expand((x) => x);
-    return _values!;
-  }
+  Iterable<V> get values => _map.values.expand((x) => x);
 
   // Internal.
 
-  BuiltSetMultimap._(this._map);
+  const BuiltSetMultimap._(this._map);
 }
 
 /// Default implementation of the public [BuiltSetMultimap] interface.
 class _BuiltSetMultimap<K, V> extends BuiltSetMultimap<K, V> {
+  // Precomputed.
+  final BuiltSet<V> _emptySet = BuiltSet<V>();
+
+  // Cached.
+  int? _hashCode;
+
+  @override
+  int get hashCode {
+    _hashCode ??= super.hashCode;
+    return _hashCode!;
+  }
+
+  Iterable<K>? _keys;
+
+  @override
+  Iterable<K> get keys {
+    _keys ??= super.keys;
+    return _keys!;
+  }
+
+  Iterable<V>? _values;
+  @override
+  Iterable<V> get values {
+    _values ??= super.values;
+    return _values!;
+  }
+
+  @override
+  BuiltSet<V>? operator [](Object? key) {
+    var result = _map[key];
+    return identical(result, null) ? _emptySet : result;
+  }
+
   _BuiltSetMultimap.withSafeMap(Map<K, BuiltSet<V>> map) : super._(map);
 
   _BuiltSetMultimap.copyAndCheck(Iterable keys, Function lookup)
@@ -176,6 +199,13 @@ class _BuiltSetMultimap<K, V> extends BuiltSetMultimap<K, V> {
       }
     }
   }
+
+  bool hasExactKeyAndValueTypes(Type key, Type value) => K == key && V == value;
+}
+
+class _ConstBuiltSetMultimap<K, V> extends BuiltSetMultimap<K, V> {
+  const _ConstBuiltSetMultimap.withSafeSet([Map<K, BuiltSet<V>> src = const {}])
+      : super._(src);
 
   bool hasExactKeyAndValueTypes(Type key, Type value) => K == key && V == value;
 }

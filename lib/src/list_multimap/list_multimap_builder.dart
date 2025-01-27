@@ -17,7 +17,7 @@ class ListMultimapBuilder<K, V> {
   late Map<K, BuiltList<V>> _builtMap;
   // Instance that _builtMap belongs to. If present, _builtMap must not be
   // mutated.
-  _BuiltListMultimap<K, V>? _builtMapOwner;
+  BuiltListMultimap<K, V>? _builtMapOwner;
   // ListBuilders for keys that are being changed.
   late Map<K, ListBuilder<V>> _builderMap;
 
@@ -57,7 +57,7 @@ class ListMultimapBuilder<K, V> {
   ///
   /// Any [ListBuilder]s associated with this collection are disconnected.
   void replace(dynamic multimap) {
-    if (multimap is _BuiltListMultimap<K, V>) {
+    if (multimap is BuiltListMultimap<K, V>) {
       _setOwner(multimap);
     } else if (multimap is Map) {
       _setWithCopyAndCheck(multimap.keys, (k) => multimap[k]);
@@ -178,7 +178,7 @@ class ListMultimapBuilder<K, V> {
 
   ListMultimapBuilder._uninitialized();
 
-  void _setOwner(_BuiltListMultimap<K, V> builtListMultimap) {
+  void _setOwner(BuiltListMultimap<K, V> builtListMultimap) {
     _builtMapOwner = builtListMultimap;
     _builtMap = builtListMultimap._map;
     _builderMap = <K, ListBuilder<V>>{};

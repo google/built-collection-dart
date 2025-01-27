@@ -18,7 +18,6 @@ typedef _SetFactory<E> = Set<E> Function();
 abstract class BuiltSet<E> implements Iterable<E>, BuiltIterable<E> {
   final _SetFactory<E>? _setFactory;
   final Set<E> _set;
-  int? _hashCode;
 
   /// Instantiates with elements from an [Iterable].
   factory BuiltSet([Iterable iterable = const []]) => BuiltSet.from(iterable);
@@ -41,6 +40,8 @@ abstract class BuiltSet<E> implements Iterable<E>, BuiltIterable<E> {
     }
   }
 
+  const factory BuiltSet.fromSet([Set<E> set]) = _ConstBuiltSet.withSafeSet;
+
   /// Creates a [SetBuilder], applies updates to it, and builds.
   factory BuiltSet.build(Function(SetBuilder<E>) updates) =>
       (SetBuilder<E>()..update(updates)).build();
@@ -48,8 +49,7 @@ abstract class BuiltSet<E> implements Iterable<E>, BuiltIterable<E> {
   /// Converts to a [SetBuilder] for modification.
   ///
   /// The `BuiltSet` remains immutable and can continue to be used.
-  SetBuilder<E> toBuilder() =>
-      SetBuilder<E>._fromBuiltSet(this as _BuiltSet<E>);
+  SetBuilder<E> toBuilder() => SetBuilder<E>._fromBuiltSet(this);
 
   /// Converts to a [SetBuilder], applies updates to it, and builds.
   BuiltSet<E> rebuild(Function(SetBuilder<E>) updates) =>
@@ -67,9 +67,9 @@ abstract class BuiltSet<E> implements Iterable<E>, BuiltIterable<E> {
   /// any order. Then, the `hashCode` is guaranteed to be the same.
   @override
   int get hashCode {
-    _hashCode ??= hashObjects(
-        _set.map((e) => e.hashCode).toList(growable: false)..sort());
-    return _hashCode!;
+    return hashObjects(
+      _set.map((e) => e.hashCode).toList(growable: false)..sort(),
+    );
   }
 
   /// Deep equality.
@@ -223,11 +223,19 @@ abstract class BuiltSet<E> implements Iterable<E>, BuiltIterable<E> {
 
   // Internal.
 
-  BuiltSet._(this._setFactory, this._set);
+  const BuiltSet._(this._setFactory, this._set);
 }
 
 /// Default implementation of the public [BuiltSet] interface.
 class _BuiltSet<E> extends BuiltSet<E> {
+  int? _hashCode;
+
+  @override
+  int get hashCode {
+    _hashCode ??= super.hashCode;
+    return _hashCode!;
+  }
+
   _BuiltSet.withSafeSet(_SetFactory<E>? setFactory, Set<E> set)
       : super._(setFactory, set);
 
@@ -251,6 +259,10 @@ class _BuiltSet<E> extends BuiltSet<E> {
   }
 
   bool hasExactElementType(Type type) => E == type;
+}
+
+class _ConstBuiltSet<E> extends BuiltSet<E> {
+  const _ConstBuiltSet.withSafeSet([Set<E> s = const {}]) : super._(null, s);
 }
 
 /// Extensions for [BuiltSet] on [Set].
