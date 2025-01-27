@@ -11,4 +11,6 @@ abstract class BuiltIterable<E> implements Iterable<E> {
 
   /// Converts to a [BuiltSet].
   BuiltSet<E> toBuiltSet();
+
+  const BuiltIterable();
 }

@@ -4,6 +4,8 @@
 
 part of '../list.dart';
 
+final _hashCodeExpando = Expando<int>();
+
 /// The Built Collection [List].
 ///
 /// It implements [Iterable] and the non-mutating part of the [List] interface.
@@ -15,7 +17,6 @@ part of '../list.dart';
 /// for the general properties of Built Collections.
 abstract class BuiltList<E> implements Iterable<E>, BuiltIterable<E> {
   final List<E> _list;
-  int? _hashCode;
 
   /// Instantiates with elements from an [Iterable].
   factory BuiltList([Iterable iterable = const []]) {
@@ -25,6 +26,8 @@ abstract class BuiltList<E> implements Iterable<E>, BuiltIterable<E> {
       return _BuiltList<E>.from(iterable);
     }
   }
+
+  const factory BuiltList.fromList([List<E> list]) = _BuiltList<E>.withSafeList;
 
   /// Instantiates with elements from an [Iterable<E>].
   ///
@@ -62,8 +65,7 @@ abstract class BuiltList<E> implements Iterable<E>, BuiltIterable<E> {
   /// the same order. Then, the `hashCode` is guaranteed to be the same.
   @override
   int get hashCode {
-    _hashCode ??= hashObjects(_list);
-    return _hashCode!;
+    return _hashCodeExpando[this] ??= hashObjects(_list);
   }
 
   /// Deep equality.
@@ -234,12 +236,12 @@ abstract class BuiltList<E> implements Iterable<E>, BuiltIterable<E> {
 
   // Internal.
 
-  BuiltList._(this._list);
+  const BuiltList._(this._list);
 }
 
 /// Default implementation of the public [BuiltList] interface.
 class _BuiltList<E> extends BuiltList<E> {
-  _BuiltList.withSafeList(List<E> list) : super._(list);
+  const _BuiltList.withSafeList([List<E> list = const []]) : super._(list);
 
   _BuiltList.from([Iterable iterable = const []])
       : super._(List<E>.from(iterable, growable: false)) {

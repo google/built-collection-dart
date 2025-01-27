@@ -13,7 +13,7 @@ part of '../list.dart';
 /// for the general properties of Built Collections.
 class ListBuilder<E> {
   late List<E> _list;
-  _BuiltList<E>? _listOwner;
+  BuiltList<E>? _listOwner;
 
   /// Instantiates with elements from an [Iterable<E>].
   factory ListBuilder.of(Iterable<E> iterable) {
@@ -43,7 +43,7 @@ class ListBuilder<E> {
 
   /// Replaces all elements with elements from an [Iterable].
   void replace(Iterable iterable) {
-    if (iterable is _BuiltList<E>) {
+    if (iterable is BuiltList<E>) {
       _setOwner(iterable);
     } else {
       _setSafeList(List<E>.from(iterable));
@@ -272,7 +272,7 @@ class ListBuilder<E> {
 
   ListBuilder._uninitialized();
 
-  void _setOwner(_BuiltList<E> listOwner) {
+  void _setOwner(BuiltList<E> listOwner) {
     _list = listOwner._list;
     _listOwner = listOwner;
   }
