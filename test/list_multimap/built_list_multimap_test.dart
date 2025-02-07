@@ -386,13 +386,14 @@ void main() {
 
     test('converts to ListMultimapBuilder from correct type without copying',
         () {
-      var makeLongListMultimap = () {
+      makeLongListMultimap() {
         var result = ListMultimapBuilder<int, int>();
         for (var i = 0; i != 100000; ++i) {
           result.add(i, i);
         }
         return result.build();
-      };
+      }
+
       var longListMultimap = makeLongListMultimap();
       var longListMultimapToListMultimapBuilder = longListMultimap.toBuilder;
 
@@ -401,43 +402,46 @@ void main() {
     });
 
     test('converts to ListMultimapBuilder from wrong type by copying', () {
-      var makeLongListMultimap = () {
+      makeLongListMultimap() {
         var result = ListMultimapBuilder<Object, Object>();
         for (var i = 0; i != 100000; ++i) {
           result.add(i, i);
         }
         return result.build();
-      };
+      }
+
       var longListMultimap = makeLongListMultimap();
-      var longListMultimapToListMultimapBuilder =
-          () => ListMultimapBuilder<int, int>(longListMultimap);
+      longListMultimapToListMultimapBuilder() =>
+          ListMultimapBuilder<int, int>(longListMultimap);
 
       expectNotMuchFaster(
           longListMultimapToListMultimapBuilder, makeLongListMultimap);
     });
 
     test('has fast toMap', () {
-      var makeLongListMultimap = () {
+      makeLongListMultimap() {
         var result = ListMultimapBuilder<int, int>();
         for (var i = 0; i != 100000; ++i) {
           result.add(i, i);
         }
         return result.build();
-      };
+      }
+
       var longListMultimap = makeLongListMultimap();
-      var longListMultimapToListMultimap = () => longListMultimap.toMap();
+      longListMultimapToListMultimap() => longListMultimap.toMap();
 
       expectMuchFaster(longListMultimapToListMultimap, makeLongListMultimap);
     });
 
     test('checks for reference identity', () {
-      var makeLongListMultimap = () {
+      makeLongListMultimap() {
         var result = ListMultimapBuilder<int, int>();
         for (var i = 0; i != 100000; ++i) {
           result.add(i, i);
         }
         return result.build();
-      };
+      }
+
       var longListMultimap = makeLongListMultimap();
       var otherLongListMultimap = makeLongListMultimap();
 

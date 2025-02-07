@@ -2,16 +2,20 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+import 'dart:collection' show ListBase;
 import 'dart:math';
 
-class CopyOnWriteList<E> implements List<E> {
+class CopyOnWriteList<E> extends ListBase<E> {
   bool _copyBeforeWrite;
   final bool _growable;
   List<E> _list;
 
   CopyOnWriteList(this._list, this._growable) : _copyBeforeWrite = true;
 
-  // Read-only methods: just forward.
+  // Read-only methods returning values: just forward.
+  // Methods returning a lazy view use default list implementation
+  // until first write, to avoid capturing a `_list` which may be replaced
+  // on a write.
 
   @override
   int get length => _list.length;
@@ -26,10 +30,10 @@ class CopyOnWriteList<E> implements List<E> {
   bool any(bool Function(E) test) => _list.any(test);
 
   @override
-  Map<int, E> asMap() => _list.asMap();
+  Map<int, E> asMap() => _copyBeforeWrite ? super.asMap() : _list.asMap();
 
   @override
-  List<T> cast<T>() => CopyOnWriteList<T>(_list.cast<T>(), _growable);
+  List<T> cast<T>() => _copyBeforeWrite ? super.cast<T>() : _list.cast<T>();
 
   @override
   bool contains(Object? element) => _list.contains(element);
@@ -41,7 +45,8 @@ class CopyOnWriteList<E> implements List<E> {
   bool every(bool Function(E) test) => _list.every(test);
 
   @override
-  Iterable<T> expand<T>(Iterable<T> Function(E) f) => _list.expand(f);
+  Iterable<T> expand<T>(Iterable<T> Function(E) f) =>
+      _copyBeforeWrite ? super.expand<T>(f) : _list.expand(f);
 
   @override
   E get first => _list.first;
@@ -55,16 +60,20 @@ class CopyOnWriteList<E> implements List<E> {
       _list.fold(initialValue, combine);
 
   @override
-  Iterable<E> followedBy(Iterable<E> other) => _list.followedBy(other);
+  Iterable<E> followedBy(Iterable<E> other) =>
+      _copyBeforeWrite ? super.followedBy(other) : _list.followedBy(other);
 
   @override
-  void forEach(void Function(E) f) => _list.forEach(f);
+  void forEach(void Function(E) action) => _list.forEach(action);
 
   @override
-  Iterable<E> getRange(int start, int end) => _list.getRange(start, end);
+  Iterable<E> getRange(int start, int end) => _copyBeforeWrite
+      ? super.getRange(start, end)
+      : _list.getRange(start, end);
 
   @override
-  int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
+  int indexOf(covariant E element, [int start = 0]) =>
+      _list.indexOf(element, start);
 
   @override
   int indexWhere(bool Function(E) test, [int start = 0]) =>
@@ -77,7 +86,8 @@ class CopyOnWriteList<E> implements List<E> {
   bool get isNotEmpty => _list.isNotEmpty;
 
   @override
-  Iterator<E> get iterator => _list.iterator;
+  Iterator<E> get iterator =>
+      _copyBeforeWrite ? super.iterator : _list.iterator;
 
   @override
   String join([String separator = '']) => _list.join(separator);
@@ -86,7 +96,8 @@ class CopyOnWriteList<E> implements List<E> {
   E get last => _list.last;
 
   @override
-  int lastIndexOf(E element, [int? start]) => _list.lastIndexOf(element, start);
+  int lastIndexOf(covariant E element, [int? start]) =>
+      _list.lastIndexOf(element, start);
 
   @override
   int lastIndexWhere(bool Function(E) test, [int? start]) =>
@@ -97,13 +108,15 @@ class CopyOnWriteList<E> implements List<E> {
       _list.lastWhere(test, orElse: orElse);
 
   @override
-  Iterable<T> map<T>(T Function(E) f) => _list.map(f);
+  Iterable<T> map<T>(T Function(E) f) =>
+      _copyBeforeWrite ? super.map(f) : _list.map(f);
 
   @override
   E reduce(E Function(E, E) combine) => _list.reduce(combine);
 
   @override
-  Iterable<E> get reversed => _list.reversed;
+  Iterable<E> get reversed =>
+      _copyBeforeWrite ? super.reversed : _list.reversed;
 
   @override
   E get single => _list.single;
@@ -113,19 +126,23 @@ class CopyOnWriteList<E> implements List<E> {
       _list.singleWhere(test, orElse: orElse);
 
   @override
-  Iterable<E> skip(int count) => _list.skip(count);
+  Iterable<E> skip(int count) =>
+      _copyBeforeWrite ? super.skip(count) : _list.skip(count);
 
   @override
-  Iterable<E> skipWhile(bool Function(E) test) => _list.skipWhile(test);
+  Iterable<E> skipWhile(bool Function(E) test) =>
+      _copyBeforeWrite ? super.skipWhile(test) : _list.skipWhile(test);
 
   @override
   List<E> sublist(int start, [int? end]) => _list.sublist(start, end);
 
   @override
-  Iterable<E> take(int count) => _list.take(count);
+  Iterable<E> take(int count) =>
+      _copyBeforeWrite ? super.take(count) : _list.take(count);
 
   @override
-  Iterable<E> takeWhile(bool Function(E) test) => _list.takeWhile(test);
+  Iterable<E> takeWhile(bool Function(E) test) =>
+      _copyBeforeWrite ? super.takeWhile(test) : _list.takeWhile(test);
 
   @override
   List<E> toList({bool growable = true}) => _list.toList(growable: growable);
@@ -134,10 +151,12 @@ class CopyOnWriteList<E> implements List<E> {
   Set<E> toSet() => _list.toSet();
 
   @override
-  Iterable<E> where(bool Function(E) test) => _list.where(test);
+  Iterable<E> where(bool Function(E) test) =>
+      _copyBeforeWrite ? super.where(test) : _list.where(test);
 
   @override
-  Iterable<T> whereType<T>() => _list.whereType<T>();
+  Iterable<T> whereType<T>() =>
+      _copyBeforeWrite ? super.whereType<T>() : _list.whereType<T>();
 
   // Mutating methods: copy first if needed.
 
@@ -166,9 +185,9 @@ class CopyOnWriteList<E> implements List<E> {
   }
 
   @override
-  void add(E value) {
+  void add(E element) {
     _maybeCopyBeforeWrite();
-    _list.add(value);
+    _list.add(element);
   }
 
   @override
@@ -214,9 +233,9 @@ class CopyOnWriteList<E> implements List<E> {
   }
 
   @override
-  bool remove(Object? value) {
+  bool remove(Object? element) {
     _maybeCopyBeforeWrite();
-    return _list.remove(value);
+    return _list.remove(element);
   }
 
   @override
@@ -256,15 +275,15 @@ class CopyOnWriteList<E> implements List<E> {
   }
 
   @override
-  void fillRange(int start, int end, [E? fillValue]) {
+  void fillRange(int start, int end, [E? fill]) {
     _maybeCopyBeforeWrite();
-    _list.fillRange(start, end, fillValue);
+    _list.fillRange(start, end, fill);
   }
 
   @override
-  void replaceRange(int start, int end, Iterable<E> iterable) {
+  void replaceRange(int start, int end, Iterable<E> newContents) {
     _maybeCopyBeforeWrite();
-    _list.replaceRange(start, end, iterable);
+    _list.replaceRange(start, end, newContents);
   }
 
   @override
@@ -275,6 +294,6 @@ class CopyOnWriteList<E> implements List<E> {
   void _maybeCopyBeforeWrite() {
     if (!_copyBeforeWrite) return;
     _copyBeforeWrite = false;
-    _list = List<E>.from(_list, growable: _growable);
+    _list = List<E>.of(_list, growable: _growable);
   }
 }

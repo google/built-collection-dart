@@ -140,7 +140,7 @@ void main() {
     });
 
     test('reuses BuiltMap passed to replace if it has the same base', () {
-      var treeMapBase = () => SplayTreeMap<int, String>();
+      treeMapBase() => SplayTreeMap<int, String>();
       var map = BuiltMap<int, String>.build((b) => b
         ..withBase(treeMapBase)
         ..addAll({1: '1', 2: '2'}));
@@ -183,10 +183,10 @@ void main() {
     });
 
     test('converts to BuiltMap without copying', () {
-      var makeLongMapBuilder = () => MapBuilder<int, int>(
+      makeLongMapBuilder() => MapBuilder<int, int>(
           Map<int, int>.fromIterable(List<int>.generate(100000, (x) => x)));
       var longMapBuilder = makeLongMapBuilder();
-      var buildLongMapBuilder = () => longMapBuilder.build();
+      buildLongMapBuilder() => longMapBuilder.build();
 
       expectMuchFaster(buildLongMapBuilder, makeLongMapBuilder);
     });
@@ -205,8 +205,8 @@ void main() {
 
     test('has a method like Map[]', () {
       var mapBuilder = MapBuilder<int, String>({1: '1', 2: '2'});
-      mapBuilder[1] = mapBuilder[1]! + '*';
-      mapBuilder[2] = mapBuilder[2]! + '**';
+      mapBuilder[1] = '${mapBuilder[1]!}*';
+      mapBuilder[2] = '${mapBuilder[2]!}**';
       expect(mapBuilder.build().asMap(), {1: '1*', 2: '2**'});
     });
 
@@ -319,13 +319,13 @@ void main() {
     test('has a method like Map.update called updateValue', () {
       expect(
           (MapBuilder<int, String>({1: '1', 2: '2'})
-                ..updateValue(1, (v) => v + '1', ifAbsent: () => '7'))
+                ..updateValue(1, (v) => '${v}1', ifAbsent: () => '7'))
               .build()
               .toMap(),
           {1: '11', 2: '2'});
       expect(
           (MapBuilder<int, String>({1: '1', 2: '2'})
-                ..updateValue(7, (v) => v + '1', ifAbsent: () => '7'))
+                ..updateValue(7, (v) => '${v}1', ifAbsent: () => '7'))
               .build()
               .toMap(),
           {1: '1', 2: '2', 7: '7'});

@@ -9,19 +9,20 @@ import 'internal/hash.dart';
 import 'internal/copy_on_write_set.dart';
 import 'internal/iterables.dart';
 import 'internal/null_safety.dart';
+import 'internal/type_helper.dart';
 import 'internal/unmodifiable_set.dart';
 
 part 'set/built_set.dart';
 part 'set/set_builder.dart';
 
 // Internal only, for testing.
-class OverriddenHashcodeBuiltSet<T> extends _BuiltSet<T> {
-  final int _overridenHashCode;
+class OverriddenHashCodeBuiltSet<T> extends _BuiltSet<T> {
+  final int _overriddenHashCode;
 
-  OverriddenHashcodeBuiltSet(Iterable iterable, this._overridenHashCode)
-      : super.from(iterable);
+  OverriddenHashCodeBuiltSet(super.iterable, this._overriddenHashCode)
+      : super.from();
 
   @override
   // ignore: hash_and_equals
-  int get hashCode => _overridenHashCode;
+  int get hashCode => _overriddenHashCode;
 }

@@ -19,7 +19,7 @@ abstract class BuiltList<E> implements Iterable<E>, BuiltIterable<E> {
 
   /// Instantiates with elements from an [Iterable].
   factory BuiltList([Iterable iterable = const []]) {
-    if (iterable is _BuiltList && iterable.hasExactElementType(E)) {
+    if (iterable is _BuiltList && iterable.hasEquivalentElementType<E>()) {
       return iterable as BuiltList<E>;
     } else {
       return _BuiltList<E>.from(iterable);
@@ -30,7 +30,7 @@ abstract class BuiltList<E> implements Iterable<E>, BuiltIterable<E> {
   ///
   /// `E` must not be `dynamic`.
   factory BuiltList.of(Iterable<E> iterable) {
-    if (iterable is _BuiltList<E> && iterable.hasExactElementType(E)) {
+    if (iterable is _BuiltList<E> && iterable.hasEquivalentElementType<E>()) {
       return iterable;
     } else {
       return _BuiltList<E>.of(iterable);
@@ -61,10 +61,7 @@ abstract class BuiltList<E> implements Iterable<E>, BuiltIterable<E> {
   /// A `BuiltList` is only equal to another `BuiltList` with equal elements in
   /// the same order. Then, the `hashCode` is guaranteed to be the same.
   @override
-  int get hashCode {
-    _hashCode ??= hashObjects(_list);
-    return _hashCode!;
-  }
+  int get hashCode => _hashCode ??= hashObjects(_list);
 
   /// Deep equality.
   ///
@@ -239,30 +236,16 @@ abstract class BuiltList<E> implements Iterable<E>, BuiltIterable<E> {
 
 /// Default implementation of the public [BuiltList] interface.
 class _BuiltList<E> extends BuiltList<E> {
-  _BuiltList.withSafeList(List<E> list) : super._(list);
+  _BuiltList.withSafeList(super.list) : super._();
 
   _BuiltList.from([Iterable iterable = const []])
-      : super._(List<E>.from(iterable, growable: false)) {
-    _maybeCheckForNull();
-  }
+      : super._(List<E>.from(iterable, growable: false));
 
   _BuiltList.of(Iterable<E> iterable)
-      : super._(List<E>.from(iterable, growable: false)) {
-    _maybeCheckForNull();
-  }
+      : super._(List<E>.from(iterable, growable: false));
 
-  bool get _needsNullCheck => !isSoundMode && null is! E;
-
-  void _maybeCheckForNull() {
-    if (!_needsNullCheck) return;
-    for (var element in _list) {
-      if (identical(element, null)) {
-        throw ArgumentError('iterable contained invalid element: null');
-      }
-    }
-  }
-
-  bool hasExactElementType(Type type) => E == type;
+  bool hasEquivalentElementType<T>() =>
+      this is _BuiltList<T> && TypeHelper<T>() is TypeHelper<E>;
 }
 
 /// Extensions for [BuiltList] on [List].

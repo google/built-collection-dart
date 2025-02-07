@@ -4,8 +4,6 @@
 
 part of '../map.dart';
 
-typedef _MapFactory<K, V> = Map<K, V> Function();
-
 /// The Built Collection [Map].
 ///
 /// It implements the non-mutating part of the [Map] interface. Iteration over
@@ -16,7 +14,7 @@ typedef _MapFactory<K, V> = Map<K, V> Function();
 /// [Built Collection library documentation](#built_collection/built_collection)
 /// for the general properties of Built Collections.
 abstract class BuiltMap<K, V> {
-  final _MapFactory<K, V>? _mapFactory;
+  final Map<K, V> Function()? _mapFactory;
   final Map<K, V> _map;
 
   // Cached.
@@ -26,7 +24,7 @@ abstract class BuiltMap<K, V> {
 
   /// Instantiates with elements from a [Map] or [BuiltMap].
   factory BuiltMap([map = const {}]) {
-    if (map is _BuiltMap && map.hasExactKeyAndValueTypes(K, V)) {
+    if (map is _BuiltMap && map.hasEquivalentKeyAndValueTypes<K, V>()) {
       return map as BuiltMap<K, V>;
     } else if (map is Map || map is BuiltMap) {
       return _BuiltMap<K, V>.copyAndCheckTypes(map.keys, (k) => map[k]);
@@ -44,7 +42,7 @@ abstract class BuiltMap<K, V> {
   ///
   /// `K` and `V` are inferred from `map`.
   factory BuiltMap.of(Map<K, V> map) {
-    return _BuiltMap<K, V>.copyAndCheckForNull(map.keys, (k) => map[k] as V);
+    return _BuiltMap<K, V>.copy(map.keys, (k) => map[k] as V);
   }
 
   /// Creates a [MapBuilder], applies updates to it, and builds.
@@ -86,9 +84,11 @@ abstract class BuiltMap<K, V> {
     _hashCode ??= hashObjects(_map.keys
         .map((key) => hash2(key.hashCode, _map[key].hashCode))
         .toList(growable: false)
-      ..sort());
+      ..sort(_compareInt));
     return _hashCode!;
   }
+
+  static int _compareInt(int a, int b) => a - b;
 
   /// Deep equality.
   ///
@@ -161,8 +161,7 @@ abstract class BuiltMap<K, V> {
 
 /// Default implementation of the public [BuiltMap] interface.
 class _BuiltMap<K, V> extends BuiltMap<K, V> {
-  _BuiltMap.withSafeMap(_MapFactory<K, V>? mapFactory, Map<K, V> map)
-      : super._(mapFactory, map);
+  _BuiltMap.withSafeMap(super.mapFactory, super.map) : super._();
 
   _BuiltMap.copyAndCheckTypes(Iterable keys, Function lookup)
       : super._(null, <K, V>{}) {
@@ -180,23 +179,11 @@ class _BuiltMap<K, V> extends BuiltMap<K, V> {
     }
   }
 
-  _BuiltMap.copyAndCheckForNull(Iterable<K> keys, V Function(K) lookup)
-      : super._(null, <K, V>{}) {
-    var checkKeys = !isSoundMode && null is! K;
-    var checkValues = !isSoundMode && null is! V;
-    for (var key in keys) {
-      if (checkKeys && identical(key, null)) {
-        throw ArgumentError('map contained invalid key: null');
-      }
-      var value = lookup(key);
-      if (checkValues && value == null) {
-        throw ArgumentError('map contained invalid value: null');
-      }
-      _map[key] = value;
-    }
-  }
+  _BuiltMap.copy(Iterable<K> keys, V Function(K) lookup)
+      : super._(null, <K, V>{for (var key in keys) key: lookup(key)});
 
-  bool hasExactKeyAndValueTypes(Type key, Type value) => K == key && V == value;
+  bool hasEquivalentKeyAndValueTypes<K2, V2>() =>
+      this is BuiltMap<K2, V2> && TypeHelper2<K2, V2>() is TypeHelper2<K, V>;
 }
 
 /// Extensions for [BuiltMap] on [Map].

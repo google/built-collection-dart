@@ -123,15 +123,16 @@ void main() {
     });
 
     test('converts to BuiltListMultimap without copying', () {
-      var makeLongListMultimapBuilder = () {
+      makeLongListMultimapBuilder() {
         var result = ListMultimapBuilder<int, int>();
         for (var i = 0; i != 100000; ++i) {
           result.add(0, i);
         }
         return result;
-      };
+      }
+
       var longListMultimapBuilder = makeLongListMultimapBuilder();
-      var buildLongListMultimapBuilder = () => longListMultimapBuilder.build();
+      buildLongListMultimapBuilder() => longListMultimapBuilder.build();
 
       expectMuchFaster(
           buildLongListMultimapBuilder, makeLongListMultimapBuilder);

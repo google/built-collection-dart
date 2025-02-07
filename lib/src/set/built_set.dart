@@ -4,8 +4,6 @@
 
 part of '../set.dart';
 
-typedef _SetFactory<E> = Set<E> Function();
-
 /// The Built Collection [Set].
 ///
 /// It implements [Iterable] and the non-mutating part of the [Set] interface.
@@ -16,16 +14,17 @@ typedef _SetFactory<E> = Set<E> Function();
 /// [Built Collection library documentation](#built_collection/built_collection)
 /// for the general properties of Built Collections.
 abstract class BuiltSet<E> implements Iterable<E>, BuiltIterable<E> {
-  final _SetFactory<E>? _setFactory;
+  final Set<E> Function()? _setFactory;
   final Set<E> _set;
   int? _hashCode;
 
   /// Instantiates with elements from an [Iterable].
-  factory BuiltSet([Iterable iterable = const []]) => BuiltSet.from(iterable);
+  factory BuiltSet([Iterable iterable = const []]) =>
+      BuiltSet<E>.from(iterable);
 
   /// Instantiates with elements from an [Iterable].
   factory BuiltSet.from(Iterable iterable) {
-    if (iterable is _BuiltSet && iterable.hasExactElementType(E)) {
+    if (iterable is _BuiltSet && iterable.hasEquivalentElementType<E>()) {
       return iterable as BuiltSet<E>;
     } else {
       return _BuiltSet<E>.from(iterable);
@@ -34,7 +33,7 @@ abstract class BuiltSet<E> implements Iterable<E>, BuiltIterable<E> {
 
   /// Instantiates with elements from an [Iterable<E>].
   factory BuiltSet.of(Iterable<E> iterable) {
-    if (iterable is _BuiltSet<E> && iterable.hasExactElementType(E)) {
+    if (iterable is _BuiltSet<E> && iterable.hasEquivalentElementType<E>()) {
       return iterable;
     } else {
       return _BuiltSet<E>.of(iterable);
@@ -228,29 +227,14 @@ abstract class BuiltSet<E> implements Iterable<E>, BuiltIterable<E> {
 
 /// Default implementation of the public [BuiltSet] interface.
 class _BuiltSet<E> extends BuiltSet<E> {
-  _BuiltSet.withSafeSet(_SetFactory<E>? setFactory, Set<E> set)
-      : super._(setFactory, set);
+  _BuiltSet.withSafeSet(super.setFactory, super.set) : super._();
 
-  _BuiltSet.from(Iterable iterable) : super._(null, Set<E>.from(iterable)) {
-    _maybeCheckForNull();
-  }
+  _BuiltSet.from(Iterable iterable) : super._(null, Set<E>.from(iterable));
 
-  _BuiltSet.of(Iterable<E> iterable) : super._(null, <E>{}..addAll(iterable)) {
-    _maybeCheckForNull();
-  }
+  _BuiltSet.of(Iterable<E> iterable) : super._(null, <E>{}..addAll(iterable));
 
-  bool get _needsNullCheck => !isSoundMode && null is! E;
-
-  void _maybeCheckForNull() {
-    if (!_needsNullCheck) return;
-    for (var element in _set) {
-      if (identical(element, null)) {
-        throw ArgumentError('iterable contained invalid element: null');
-      }
-    }
-  }
-
-  bool hasExactElementType(Type type) => E == type;
+  bool hasEquivalentElementType<T>() =>
+      this is _BuiltSet<T> && TypeHelper<T>() is TypeHelper<E>;
 }
 
 /// Extensions for [BuiltSet] on [Set].

@@ -2,6 +2,7 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:collection' show SplayTreeSet;
 import 'package:built_collection/src/set.dart';
 import 'package:built_collection/src/internal/test_helpers.dart';
@@ -67,6 +68,47 @@ void main() {
         BuiltSet<int>().toSet(),
         isNot(const TypeMatcher<Set<String>>()),
       );
+    });
+
+    test('can be converted to set with safe lazy behavior', () {
+      var cowSet = BuiltSet<int>.of(<int>{1, 2, 3}).toSet();
+      // Once while needing to copy, once while not.
+      for (var i = 1; i <= 2; i++) {
+        var lazyCast = cowSet.cast<num>();
+        var lazyMap = cowSet.map((int x) => x);
+        var lazyExpand = cowSet.expand((int x) => <int>[x]);
+        var lazyWhere = cowSet.where((int x) => true);
+        var lazyWhereType = cowSet.whereType<num>();
+        var lazySkip = cowSet.skip(0);
+        var lazyTake = cowSet.take(10);
+        var lazySkipWhile = cowSet.skipWhile((int x) => false);
+        var lazyTakeWhile = cowSet.takeWhile((int x) => true);
+        var lazyFollowedBy = cowSet.followedBy(<int>[]);
+
+        // Write to set.
+        cowSet.add(cowSet.length + 1);
+
+        // Iterables created before write agree with set after.
+        expect(lazyCast.toList(), cowSet.cast<num>().toList());
+        expect(lazyMap.toList(), cowSet.map((int x) => x).toList(),
+            reason: "map");
+        expect(lazyExpand.toList(), cowSet.expand((int x) => <int>[x]).toList(),
+            reason: "expand");
+        expect(lazyWhere.toList(), cowSet.where((int x) => true).toList(),
+            reason: "where");
+        expect(lazyWhereType.toList(), cowSet.whereType<num>().toList(),
+            reason: "whereType");
+        expect(lazySkip.toList(), cowSet.skip(0).toList(), reason: "skip");
+        expect(lazyTake.toList(), cowSet.take(10).toList(), reason: "take");
+        expect(
+            lazySkipWhile.toList(), cowSet.skipWhile((int x) => false).toList(),
+            reason: "skipWhile");
+        expect(
+            lazyTakeWhile.toList(), cowSet.takeWhile((int x) => true).toList(),
+            reason: "takeWhile");
+        expect(lazyFollowedBy.toList(), cowSet.followedBy(<int>[]).toList(),
+            reason: "followedBy");
+      }
     });
 
     test('uses same base when converted with toSet', () {
@@ -220,6 +262,14 @@ void main() {
       expect(set1, same(set2));
     });
 
+    test('reuses BuiltSet instances of equivalent type', () {
+      var set1 = BuiltSet<Object?>();
+      var set2 = BuiltSet<dynamic>(set1);
+      expect(set1, same(set2));
+      var set3 = BuiltSet<FutureOr<Object>?>(set1);
+      expect(set1, same(set3));
+    });
+
     test('does not reuse BuiltSet instances with subtype element type', () {
       var set1 = BuiltSet<_ExtendsA>();
       var set2 = BuiltSet<_A>(set1);
@@ -233,7 +283,7 @@ void main() {
     });
 
     test('converts to SetBuilder from correct type without copying', () {
-      var makeLongSet = () =>
+      makeLongSet() =>
           BuiltSet<int>(Set<int>.from(List<int>.generate(100000, (x) => x)));
       var longSet = makeLongSet();
       var longSetToSetBuilder = longSet.toBuilder;
@@ -242,25 +292,25 @@ void main() {
     });
 
     test('converts to SetBuilder from wrong type by copying', () {
-      var makeLongSet = () =>
+      makeLongSet() =>
           BuiltSet<Object>(Set<int>.from(List<int>.generate(100000, (x) => x)));
       var longSet = makeLongSet();
-      var longSetToSetBuilder = () => SetBuilder<int>(longSet);
+      longSetToSetBuilder() => SetBuilder<int>(longSet);
 
       expectNotMuchFaster(longSetToSetBuilder, makeLongSet);
     });
 
     test('has fast toSet', () {
-      var makeLongSet = () =>
+      makeLongSet() =>
           BuiltSet<Object>(Set<int>.from(List<int>.generate(100000, (x) => x)));
       var longSet = makeLongSet();
-      var longSetToSet = () => longSet.toSet();
+      longSetToSet() => longSet.toSet();
 
       expectMuchFaster(longSetToSet, makeLongSet);
     });
 
     test('checks for reference identity', () {
-      var makeLongSet = () =>
+      makeLongSet() =>
           BuiltSet<Object>(Set<int>.from(List<int>.generate(100000, (x) => x)));
       var longSet = makeLongSet();
       var otherLongSet = makeLongSet();
@@ -342,7 +392,9 @@ void main() {
 
     test('implements Iterable.forEach', () {
       var value = 1;
-      BuiltSet<int>([2]).forEach((x) => value = x);
+      for (var x in BuiltSet<int>([2])) {
+        value = x;
+      }
       expect(value, 2);
     });
 
@@ -454,7 +506,7 @@ void main() {
       expect(BuiltSet<Object>([1, 'two', 3]).whereType<String>(), ['two']);
     });
 
-    test('can be created from`Set` using extension methods', () {
+    test('can be created from `Set` using extension methods', () {
       expect(
         {1, 2, 3}.build(),
         const TypeMatcher<BuiltSet<int>>(),
@@ -462,7 +514,7 @@ void main() {
       expect({1, 2, 3}.build(), [1, 2, 3]);
     });
 
-    test('can be created from`Iterable` using extension methods', () {
+    test('can be created from `Iterable` using extension methods', () {
       expect(
         [1, 2, 3].map((x) => x).toBuiltSet(),
         const TypeMatcher<BuiltSet<int>>(),

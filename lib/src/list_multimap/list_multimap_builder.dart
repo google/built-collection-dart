@@ -111,9 +111,9 @@ class ListMultimapBuilder<K, V> {
   /// As [ListMultimap.addValues].
   void addValues(K key, Iterable<V> values) {
     // _disown is called in add.
-    values.forEach((value) {
+    for (var value in values) {
       add(key, value);
-    });
+    }
   }
 
   /// As [ListMultimap.remove].
@@ -171,7 +171,7 @@ class ListMultimapBuilder<K, V> {
 
   void _makeWriteableCopy() {
     if (_builtMapOwner != null) {
-      _builtMap = Map<K, BuiltList<V>>.from(_builtMap);
+      _builtMap = Map<K, BuiltList<V>>.of(_builtMap);
       _builtMapOwner = null;
     }
   }

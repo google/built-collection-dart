@@ -384,13 +384,14 @@ void main() {
 
     test('converts to SetMultimapBuilder from correct type without copying',
         () {
-      var makeLongSetMultimap = () {
+      makeLongSetMultimap() {
         var result = SetMultimapBuilder<int, int>();
         for (var i = 0; i != 100000; ++i) {
           result.add(i, i);
         }
         return result.build();
-      };
+      }
+
       var longSetMultimap = makeLongSetMultimap();
       var longSetMultimapToSetMultimapBuilder = longSetMultimap.toBuilder;
 
@@ -399,43 +400,46 @@ void main() {
     });
 
     test('converts to SetMultimapBuilder from wrong type by copying', () {
-      var makeLongSetMultimap = () {
+      makeLongSetMultimap() {
         var result = SetMultimapBuilder<Object, Object>();
         for (var i = 0; i != 100000; ++i) {
           result.add(i, i);
         }
         return result.build();
-      };
+      }
+
       var longSetMultimap = makeLongSetMultimap();
-      var longSetMultimapToSetMultimapBuilder =
-          () => SetMultimapBuilder<int, int>(longSetMultimap);
+      longSetMultimapToSetMultimapBuilder() =>
+          SetMultimapBuilder<int, int>(longSetMultimap);
 
       expectNotMuchFaster(
           longSetMultimapToSetMultimapBuilder, makeLongSetMultimap);
     });
 
     test('has fast toMap', () {
-      var makeLongSetMultimap = () {
+      makeLongSetMultimap() {
         var result = SetMultimapBuilder<int, int>();
         for (var i = 0; i != 100000; ++i) {
           result.add(i, i);
         }
         return result.build();
-      };
+      }
+
       var longSetMultimap = makeLongSetMultimap();
-      var longSetMultimapToSetMultimap = () => longSetMultimap.toMap();
+      longSetMultimapToSetMultimap() => longSetMultimap.toMap();
 
       expectMuchFaster(longSetMultimapToSetMultimap, makeLongSetMultimap);
     });
 
     test('checks for reference identity', () {
-      var makeLongSetMultimap = () {
+      makeLongSetMultimap() {
         var result = SetMultimapBuilder<int, int>();
         for (var i = 0; i != 100000; ++i) {
           result.add(i, i);
         }
         return result.build();
-      };
+      }
+
       var longSetMultimap = makeLongSetMultimap();
       var otherLongSetMultimap = makeLongSetMultimap();
 

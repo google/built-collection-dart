@@ -318,10 +318,9 @@ void main() {
     });
 
     test('converts to BuiltList without copying', () {
-      var makeLongListBuilder =
-          () => ListBuilder<int>(List<int>.filled(1000000, 0));
+      makeLongListBuilder() => ListBuilder<int>(List<int>.filled(1000000, 0));
       var longListBuilder = makeLongListBuilder();
-      var buildLongListBuilder = () => longListBuilder.build();
+      buildLongListBuilder() => longListBuilder.build();
 
       expectMuchFaster(buildLongListBuilder, makeLongListBuilder);
     });

@@ -104,9 +104,10 @@
 /// a copy, but return a copy-on-write wrapper. So, Built Collections can be
 /// efficiently and easily used with code that needs core SDK collections but
 /// does not mutate them.
+library;
 
-export 'src/list.dart' hide OverriddenHashcodeBuiltList;
-export 'src/list_multimap.dart' hide OverriddenHashcodeBuiltListMultimap;
-export 'src/map.dart' hide OverriddenHashcodeBuiltMap;
-export 'src/set.dart' hide OverriddenHashcodeBuiltSet;
-export 'src/set_multimap.dart' hide OverriddenHashcodeBuiltSetMultimap;
+export 'src/list.dart' hide OverriddenHashCodeBuiltList;
+export 'src/list_multimap.dart' hide OverriddenHashCodeBuiltListMultimap;
+export 'src/map.dart' hide OverriddenHashCodeBuiltMap;
+export 'src/set.dart' hide OverriddenHashCodeBuiltSet;
+export 'src/set_multimap.dart' hide OverriddenHashCodeBuiltSetMultimap;

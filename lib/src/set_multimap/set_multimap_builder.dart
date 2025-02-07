@@ -106,9 +106,9 @@ class SetMultimapBuilder<K, V> {
   /// As [SetMultimap.addValues].
   void addValues(K key, Iterable<V> values) {
     // _disown is called in add.
-    values.forEach((value) {
+    for (var value in values) {
       add(key, value);
-    });
+    }
   }
 
   /// As [SetMultimap.remove] but returns nothing.
@@ -155,7 +155,7 @@ class SetMultimapBuilder<K, V> {
 
   void _makeWriteableCopy() {
     if (_builtMapOwner != null) {
-      _builtMap = Map<K, BuiltSet<V>>.from(_builtMap);
+      _builtMap = Map<K, BuiltSet<V>>.of(_builtMap);
       _builtMapOwner = null;
     }
   }

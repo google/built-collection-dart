@@ -6,17 +6,18 @@ import 'internal/copy_on_write_map.dart';
 
 import 'internal/hash.dart';
 import 'internal/null_safety.dart';
+import 'internal/type_helper.dart';
 import 'list.dart';
 
 part 'list_multimap/built_list_multimap.dart';
 part 'list_multimap/list_multimap_builder.dart';
 
 // Internal only, for testing.
-class OverriddenHashcodeBuiltListMultimap<K, V>
+class OverriddenHashCodeBuiltListMultimap<K, V>
     extends _BuiltListMultimap<K, V> {
   final int _overridenHashCode;
 
-  OverriddenHashcodeBuiltListMultimap(map, this._overridenHashCode)
+  OverriddenHashCodeBuiltListMultimap(map, this._overridenHashCode)
       : super.copy(map.keys, (k) => map[k]);
 
   @override

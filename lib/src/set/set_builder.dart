@@ -13,7 +13,7 @@ part of '../set.dart';
 /// for the general properties of Built Collections.
 class SetBuilder<E> {
   /// Used by [_createSet] to instantiate [_set]. The default value is `null`.
-  _SetFactory<E>? _setFactory;
+  Set<E> Function()? _setFactory;
   late Set<E> _set;
   _BuiltSet<E>? _setOwner;
 
@@ -84,7 +84,7 @@ class SetBuilder<E> {
   /// same type.
   ///
   /// Use [withDefaultBase] to reset `base` to the default value.
-  void withBase(_SetFactory<E> base) {
+  void withBase(Set<E> Function() base) {
     ArgumentError.checkNotNull(base, 'base');
     _setFactory = base;
     _setSafeSet(_createSet()..addAll(_set));

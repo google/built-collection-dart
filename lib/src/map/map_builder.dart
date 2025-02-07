@@ -13,7 +13,7 @@ part of '../map.dart';
 /// for the general properties of Built Collections.
 class MapBuilder<K, V> {
   /// Used by [_createMap] to instantiate [_map]. The default value is `null`.
-  _MapFactory<K, V>? _mapFactory;
+  Map<K, V> Function()? _mapFactory;
   late Map<K, V> _map;
   _BuiltMap<K, V>? _mapOwner;
 
@@ -73,7 +73,7 @@ class MapBuilder<K, V> {
   /// instantiate and return a new object.
   ///
   /// Use [withDefaultBase] to reset `base` to the default value.
-  void withBase(_MapFactory<K, V> base) {
+  void withBase(Map<K, V> Function() base) {
     ArgumentError.checkNotNull(base, 'base');
     _mapFactory = base;
     _setSafeMap(_createMap()..addAll(_map));

@@ -11,18 +11,19 @@ import 'internal/copy_on_write_list.dart';
 import 'internal/hash.dart';
 import 'internal/iterables.dart';
 import 'internal/null_safety.dart';
+import 'internal/type_helper.dart';
 
 part 'list/built_list.dart';
 part 'list/list_builder.dart';
 
 // Internal only, for testing.
-class OverriddenHashcodeBuiltList<T> extends _BuiltList<T> {
-  final int _overridenHashCode;
+class OverriddenHashCodeBuiltList<T> extends _BuiltList<T> {
+  final int _overriddenHashCode;
 
-  OverriddenHashcodeBuiltList(Iterable iterable, this._overridenHashCode)
-      : super.from(iterable);
+  OverriddenHashCodeBuiltList(super.iterable, this._overriddenHashCode)
+      : super.from();
 
   @override
   // ignore: hash_and_equals
-  int get hashCode => _overridenHashCode;
+  int get hashCode => _overriddenHashCode;
 }

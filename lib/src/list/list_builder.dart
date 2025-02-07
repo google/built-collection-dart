@@ -284,7 +284,7 @@ class ListBuilder<E> {
 
   List<E> get _safeList {
     if (_listOwner != null) {
-      _setSafeList(List<E>.from(_list, growable: true));
+      _setSafeList(List<E>.of(_list, growable: true));
     }
     return _list;
   }

@@ -90,7 +90,7 @@ void main() {
     });
 
     test('reuses BuiltSet passed to replace if it has the same base', () {
-      var treeSetBase = () => SplayTreeSet<int>();
+      treeSetBase() => SplayTreeSet<int>();
       var set = BuiltSet<int>.build((b) => b
         ..withBase(treeSetBase)
         ..addAll([1, 2]));
@@ -137,10 +137,10 @@ void main() {
     });
 
     test('converts to BuiltSet without copying', () {
-      var makeLongSetBuilder = () =>
+      makeLongSetBuilder() =>
           SetBuilder<int>(Set<int>.from(List<int>.generate(100000, (x) => x)));
       var longSetBuilder = makeLongSetBuilder();
-      var buildLongSetBuilder = () => longSetBuilder.build();
+      buildLongSetBuilder() => longSetBuilder.build();
 
       expectMuchFaster(buildLongSetBuilder, makeLongSetBuilder);
     });

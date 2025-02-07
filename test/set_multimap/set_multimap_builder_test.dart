@@ -122,15 +122,16 @@ void main() {
     });
 
     test('converts to BuiltSetMultimap without copying', () {
-      var makeLongSetMultimapBuilder = () {
+      makeLongSetMultimapBuilder() {
         var result = SetMultimapBuilder<int, int>();
         for (var i = 0; i != 100000; ++i) {
           result.add(0, i);
         }
         return result;
-      };
+      }
+
       var longSetMultimapBuilder = makeLongSetMultimapBuilder();
-      var buildLongSetMultimapBuilder = () => longSetMultimapBuilder.build();
+      buildLongSetMultimapBuilder() => longSetMultimapBuilder.build();
 
       expectMuchFaster(buildLongSetMultimapBuilder, makeLongSetMultimapBuilder);
     });

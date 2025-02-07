@@ -4,7 +4,7 @@
 
 typedef _SetFactory<E> = Set<E> Function();
 
-class CopyOnWriteSet<E> implements Set<E> {
+class CopyOnWriteSet<E> extends Iterable<E> implements Set<E> {
   final _SetFactory<E>? _setFactory;
   bool _copyBeforeWrite;
   Set<E> _set;
@@ -35,7 +35,7 @@ class CopyOnWriteSet<E> implements Set<E> {
   bool any(bool Function(E) test) => _set.any(test);
 
   @override
-  Set<T> cast<T>() => CopyOnWriteSet<T>(_set.cast<T>());
+  Set<T> cast<T>() => Set.castFrom<E, T>(this);
 
   @override
   bool contains(Object? element) => _set.contains(element);
@@ -47,7 +47,8 @@ class CopyOnWriteSet<E> implements Set<E> {
   bool every(bool Function(E) test) => _set.every(test);
 
   @override
-  Iterable<T> expand<T>(Iterable<T> Function(E) f) => _set.expand(f);
+  Iterable<T> expand<T>(Iterable<T> Function(E) toElements) =>
+      super.expand(toElements);
 
   @override
   E get first => _set.first;
@@ -61,10 +62,7 @@ class CopyOnWriteSet<E> implements Set<E> {
       _set.fold(initialValue, combine);
 
   @override
-  Iterable<E> followedBy(Iterable<E> other) => _set.followedBy(other);
-
-  @override
-  void forEach(void Function(E) f) => _set.forEach(f);
+  void forEach(void Function(E) action) => _set.forEach(action);
 
   @override
   bool get isEmpty => _set.isEmpty;
@@ -73,7 +71,9 @@ class CopyOnWriteSet<E> implements Set<E> {
   bool get isNotEmpty => _set.isNotEmpty;
 
   @override
-  Iterator<E> get iterator => _set.iterator;
+  Iterator<E> get iterator => _copyBeforeWrite
+      ? _CopyOnWriteSetIterator<E>(this, _set.iterator)
+      : _set.iterator;
 
   @override
   String join([String separator = '']) => _set.join(separator);
@@ -86,7 +86,7 @@ class CopyOnWriteSet<E> implements Set<E> {
       _set.lastWhere(test, orElse: orElse);
 
   @override
-  Iterable<T> map<T>(T Function(E) f) => _set.map(f);
+  Iterable<T> map<T>(T Function(E) toElement) => super.map(toElement);
 
   @override
   E reduce(E Function(E, E) combine) => _set.reduce(combine);
@@ -99,28 +99,13 @@ class CopyOnWriteSet<E> implements Set<E> {
       _set.singleWhere(test, orElse: orElse);
 
   @override
-  Iterable<E> skip(int count) => _set.skip(count);
-
-  @override
-  Iterable<E> skipWhile(bool Function(E) test) => _set.skipWhile(test);
-
-  @override
-  Iterable<E> take(int count) => _set.take(count);
-
-  @override
-  Iterable<E> takeWhile(bool Function(E) test) => _set.takeWhile(test);
-
-  @override
   List<E> toList({bool growable = true}) => _set.toList(growable: growable);
 
   @override
   Set<E> toSet() => _set.toSet();
 
   @override
-  Iterable<E> where(bool Function(E) test) => _set.where(test);
-
-  @override
-  Iterable<T> whereType<T>() => _set.whereType<T>();
+  Iterable<T> whereType<T>() => super.whereType<T>();
 
   // Mutating methods: copy first if needed.
 
@@ -180,8 +165,27 @@ class CopyOnWriteSet<E> implements Set<E> {
   void _maybeCopyBeforeWrite() {
     if (!_copyBeforeWrite) return;
     _copyBeforeWrite = false;
-    _set = _setFactory != null
-        ? (_setFactory!()..addAll(_set))
-        : Set<E>.from(_set);
+    _set =
+        _setFactory != null ? (_setFactory!()..addAll(_set)) : Set<E>.of(_set);
   }
+}
+
+/// Iterator wrapper on the [_wrapper._set.iterator].
+///
+/// Throws concurrent modification if a copy-on-write
+/// copy was made (assuming that a write was also made).
+class _CopyOnWriteSetIterator<E> implements Iterator<E> {
+  final Iterator<E> _source;
+  final CopyOnWriteSet<Object?> _wrapper;
+  _CopyOnWriteSetIterator(this._wrapper, this._source);
+  @override
+  bool moveNext() {
+    if (_wrapper._copyBeforeWrite) {
+      return _source.moveNext();
+    }
+    throw ConcurrentModificationError(_wrapper);
+  }
+
+  @override
+  E get current => _source.current;
 }

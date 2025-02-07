@@ -29,7 +29,7 @@ abstract class BuiltListMultimap<K, V> {
   /// [BuiltListMultimap].
   factory BuiltListMultimap([multimap = const {}]) {
     if (multimap is _BuiltListMultimap &&
-        multimap.hasExactKeyAndValueTypes(K, V)) {
+        multimap.hasEquivalentKeyAndValueTypes<K, V>()) {
       return multimap as BuiltListMultimap<K, V>;
     } else if (multimap is Map) {
       return _BuiltListMultimap<K, V>.copy(multimap.keys, (k) => multimap[k]);
@@ -121,9 +121,9 @@ abstract class BuiltListMultimap<K, V> {
   /// As [ListMultimap.forEach].
   void forEach(void Function(K, V) f) {
     _map.forEach((key, values) {
-      values.forEach((value) {
+      for (var value in values) {
         f(key, value);
-      });
+      }
     });
   }
 
@@ -164,7 +164,7 @@ abstract class BuiltListMultimap<K, V> {
 
 /// Default implementation of the public [BuiltListMultimap] interface.
 class _BuiltListMultimap<K, V> extends BuiltListMultimap<K, V> {
-  _BuiltListMultimap.withSafeMap(Map<K, BuiltList<V>> map) : super._(map);
+  _BuiltListMultimap.withSafeMap(super.map) : super._();
 
   _BuiltListMultimap.copy(Iterable keys, Function lookup)
       : super._(<K, BuiltList<V>>{}) {
@@ -177,5 +177,7 @@ class _BuiltListMultimap<K, V> extends BuiltListMultimap<K, V> {
     }
   }
 
-  bool hasExactKeyAndValueTypes(Type key, Type value) => K == key && V == value;
+  bool hasEquivalentKeyAndValueTypes<K2, V2>() =>
+      this is _BuiltListMultimap<K2, V2> &&
+      TypeHelper2<K2, V2>() is TypeHelper2<K, V>;
 }

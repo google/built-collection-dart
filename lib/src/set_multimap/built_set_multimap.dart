@@ -28,7 +28,7 @@ abstract class BuiltSetMultimap<K, V> {
   /// [BuiltSetMultimap].
   factory BuiltSetMultimap([multimap = const {}]) {
     if (multimap is _BuiltSetMultimap &&
-        multimap.hasExactKeyAndValueTypes(K, V)) {
+        multimap.hasEquivalentKeyAndValueTypes<K, V>()) {
       return multimap as BuiltSetMultimap<K, V>;
     } else if (multimap is Map) {
       return _BuiltSetMultimap<K, V>.copyAndCheck(
@@ -121,9 +121,9 @@ abstract class BuiltSetMultimap<K, V> {
   /// As [SetMultimap.forEach].
   void forEach(void Function(K, V) f) {
     _map.forEach((key, values) {
-      values.forEach((value) {
+      for (var value in values) {
         f(key, value);
-      });
+      }
     });
   }
 
@@ -164,7 +164,7 @@ abstract class BuiltSetMultimap<K, V> {
 
 /// Default implementation of the public [BuiltSetMultimap] interface.
 class _BuiltSetMultimap<K, V> extends BuiltSetMultimap<K, V> {
-  _BuiltSetMultimap.withSafeMap(Map<K, BuiltSet<V>> map) : super._(map);
+  _BuiltSetMultimap.withSafeMap(super.map) : super._();
 
   _BuiltSetMultimap.copyAndCheck(Iterable keys, Function lookup)
       : super._(<K, BuiltSet<V>>{}) {
@@ -177,5 +177,7 @@ class _BuiltSetMultimap<K, V> extends BuiltSetMultimap<K, V> {
     }
   }
 
-  bool hasExactKeyAndValueTypes(Type key, Type value) => K == key && V == value;
+  bool hasEquivalentKeyAndValueTypes<K2, V2>() =>
+      this is _BuiltSetMultimap<K2, V2> &&
+      TypeHelper2<K2, V2>() is TypeHelper2<K, V>;
 }

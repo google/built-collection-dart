@@ -288,7 +288,7 @@ void main() {
     });
 
     test('converts to MapBuilder from correct type without copying', () {
-      var makeLongMap = () => BuiltMap<int, int>(
+      makeLongMap() => BuiltMap<int, int>(
           Map<int, int>.fromIterable(List<int>.generate(100000, (x) => x)));
       var longMap = makeLongMap();
       var longMapToMapBuilder = longMap.toBuilder;
@@ -297,25 +297,25 @@ void main() {
     });
 
     test('converts to MapBuilder from wrong type by copying', () {
-      var makeLongMap = () => BuiltMap<Object, Object>(
+      makeLongMap() => BuiltMap<Object, Object>(
           Map<int, int>.fromIterable(List<int>.generate(100000, (x) => x)));
       var longMap = makeLongMap();
-      var longMapToMapBuilder = () => MapBuilder<int, int>(longMap);
+      longMapToMapBuilder() => MapBuilder<int, int>(longMap);
 
       expectNotMuchFaster(longMapToMapBuilder, makeLongMap);
     });
 
     test('has fast toMap', () {
-      var makeLongMap = () => BuiltMap<Object, Object>(
+      makeLongMap() => BuiltMap<Object, Object>(
           Map<int, int>.fromIterable(List<int>.generate(100000, (x) => x)));
       var longMap = makeLongMap();
-      var longMapToMap = () => longMap.toMap();
+      longMapToMap() => longMap.toMap();
 
       expectMuchFaster(longMapToMap, makeLongMap);
     });
 
     test('checks for reference identity', () {
-      var makeLongMap = () => BuiltMap<Object, Object>(
+      makeLongMap() => BuiltMap<Object, Object>(
           Map<int, int>.fromIterable(List<int>.generate(100000, (x) => x)));
       var longMap = makeLongMap();
       var otherLongMap = makeLongMap();

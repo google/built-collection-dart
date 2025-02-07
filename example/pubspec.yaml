@@ -4,9 +4,12 @@ description: >
   Example, not for publishing.
 homepage: https://github.com/google/built_collection.dart
 
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
 environment:
   sdk: '>=2.12.0 <4.0.0'
 
-dependency_overrides:
+dependencies:
   built_collection:
     path: ..

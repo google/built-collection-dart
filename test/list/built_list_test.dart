@@ -2,6 +2,8 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.s
 
+import 'dart:async';
+
 import 'package:built_collection/src/list.dart';
 import 'package:built_collection/src/internal/test_helpers.dart';
 import 'package:test/test.dart';
@@ -66,6 +68,58 @@ void main() {
         BuiltList<int>().toList(),
         isNot(const TypeMatcher<List<String>>()),
       );
+    });
+
+
+    test('can be converted to List<E> with safe lazy behavior', () {
+      var list = BuiltList<int>.of(<int>[1, 2, 3]);
+      var cowList = list.toList(); // Internally a CopyOnWriteList.
+
+      // Once while needing to copy, once while not.
+      for (var i = 1; i <= 2; i++) {
+        var lazyCast = cowList.cast<num>();
+        var lazyMap = cowList.map((int x) => x);
+        var lazyExpand = cowList.expand((int x) => <int>[x]);
+        var lazyWhere = cowList.where((int x) => true);
+        var lazyWhereType = cowList.whereType<num>();
+        var lazySkip = cowList.skip(0);
+        var lazyTake = cowList.take(10);
+        var lazyGetRange = cowList.getRange(0, cowList.length);
+        var lazySkipWhile = cowList.skipWhile((int x) => false);
+        var lazyTakeWhile = cowList.takeWhile((int x) => true);
+        var lazyFollowedBy = cowList.followedBy(<int>[]);
+        var lazyReversed = cowList.reversed;
+
+        // Write to list.
+        cowList[0] += 1;
+
+        // Iterables agree with list.
+        expect(lazyCast.toList(), cowList.cast<num>().toList());
+        expect(lazyMap.toList(), cowList.map((int x) => x).toList(),
+            reason: "map");
+        expect(
+            lazyExpand.toList(), cowList.expand((int x) => <int>[x]).toList(),
+            reason: "expand");
+        expect(lazyWhere.toList(), cowList.where((int x) => true).toList(),
+            reason: "where");
+        expect(lazyWhereType.toList(), cowList.whereType<num>().toList(),
+            reason: "whereType");
+        expect(lazySkip.toList(), cowList.skip(0).toList(), reason: "skip");
+        expect(lazyTake.toList(), cowList.take(10).toList(), reason: "take");
+        expect(
+            lazyGetRange.toList(), cowList.getRange(0, cowList.length).toList(),
+            reason: "getRange");
+        expect(lazySkipWhile.toList(),
+            cowList.skipWhile((int x) => false).toList(),
+            reason: "skipWhile");
+        expect(
+            lazyTakeWhile.toList(), cowList.takeWhile((int x) => true).toList(),
+            reason: "takeWhile");
+        expect(lazyFollowedBy.toList(), cowList.followedBy(<int>[]).toList(),
+            reason: "followedBy");
+        expect(lazyReversed.toList(), cowList.reversed.toList(),
+            reason: "reversed");
+      }
     });
 
     test('can be converted to an UnmodifiableListView', () {
@@ -187,6 +241,16 @@ void main() {
       expect(list1, same(list2));
     });
 
+    test('reuses BuiltSet instances of equivalent type', () {
+      var list1 = BuiltList<Object?>();
+      var list2 = BuiltList<dynamic>(list1);
+      expect(list1, same(list2));
+      var list3 = BuiltList<FutureOr<Object>?>(list1);
+      expect(list1, same(list3));
+    });
+
+
+
     test('does not reuse BuiltList instances with subtype element type', () {
       var list1 = BuiltList<_ExtendsA>();
       var list2 = BuiltList<_A>(list1);
@@ -200,7 +264,7 @@ void main() {
     });
 
     test('converts to ListBuilder from correct type without copying', () {
-      var makeLongList = () => BuiltList<int>(List<int>.filled(1000000, 0));
+      makeLongList() => BuiltList<int>(List<int>.filled(1000000, 0));
       var longList = makeLongList();
       var longListToListBuilder = longList.toBuilder;
 
@@ -208,23 +272,23 @@ void main() {
     });
 
     test('converts to ListBuilder from wrong type by copying', () {
-      var makeLongList = () => BuiltList<Object>(List<int>.filled(1000000, 0));
+      makeLongList() => BuiltList<Object>(List<int>.filled(1000000, 0));
       var longList = makeLongList();
-      var longListToListBuilder = () => ListBuilder<int>(longList);
+      longListToListBuilder() => ListBuilder<int>(longList);
 
       expectNotMuchFaster(longListToListBuilder, makeLongList);
     });
 
     test('has fast toList', () {
-      var makeLongList = () => BuiltList<Object>(List<int>.filled(1000000, 0));
+      makeLongList() => BuiltList<Object>(List<int>.filled(1000000, 0));
       var longList = makeLongList();
-      var longListToList = () => longList.toList();
+      longListToList() => longList.toList();
 
       expectMuchFaster(longListToList, makeLongList);
     });
 
     test('checks for reference identity', () {
-      var makeLongList = () => BuiltList<Object>(List<int>.filled(1000000, 0));
+      makeLongList() => BuiltList<Object>(List<int>.filled(1000000, 0));
       var longList = makeLongList();
       var otherLongList = makeLongList();
 
@@ -338,7 +402,9 @@ void main() {
 
     test('implements Iterable.forEach', () {
       var value = 1;
-      BuiltList<int>([2]).forEach((x) => value = x);
+      for (var x in BuiltList<int>([2])) {
+        value = x;
+      }
       expect(value, 2);
     });
 
